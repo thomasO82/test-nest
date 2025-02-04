@@ -1,0 +1,12 @@
+model Employee {
+    id        Int      @id @default(autoincrement())
+    firstName String
+    lastName  String
+    email     String
+    birthDate DateTime
+    phone     String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+    companyId Int
+}
