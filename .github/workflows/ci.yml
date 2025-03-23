@@ -49,21 +49,12 @@ jobs:
           docker-compose down -v || true
           echo "🚀 Lancement du container avec Docker Compose..."
           docker-compose up -d
+          until docker-compose exec api sh -c "pg_isready -U postgres"; do
+            echo "Waiting for database to be ready..."
+            sleep 5
+          done
+          docker-compose exec api npx prisma generate
+          docker-compose exec api npx prisma migrate deploy
         EOF
 
-    # Étape 4 : Vérification si la base de données est prête
-    - name: Check if DB is ready
-      run: |
-        until docker-compose exec api sh -c "pg_isready -U postgres"; do
-          echo "Waiting for database to be ready..."
-          sleep 5
-        done
-
-    # Étape 5 : Exécution des migrations Prisma
-    - name: Run Prisma Migrate
-      run: docker-compose exec api npx prisma migrate deploy
-
-    # Étape 6 : Génération de Prisma Client
-    - name: Generate Prisma Client
-      run: docker-compose exec api npx prisma generate
-
+   
