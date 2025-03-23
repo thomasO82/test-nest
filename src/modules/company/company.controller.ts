@@ -20,7 +20,7 @@ export class CompanyController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    console.log("mes couilles en ski nautique");
+    console.log("mes couilles en ski nautique qui glisse");
     
     return this.companyService.findOne(+id);
   }
