@@ -70,5 +70,6 @@ jobs:
         ssh -v -i ~/.ssh/id_rsa thomas@146.59.242.125 << 'EOF'
           cd project-node/test-nest
           docker-compose exec -T api npx prisma generate
-          docker-compose exec -T api npx prisma migrate dev --name init
+          sleep 5
+          docker-compose exec -T api npx prisma migrate deploy
         EOF
