@@ -39,8 +39,8 @@ jobs:
 
     - name: Copy Docker image to VPS
       run: |
-        scp -i ~/.ssh/id_rsa my-nest-app.tar thomas@146.59.242.125:/projects/my-nest-app
+        scp -i ~/.ssh/id_rsa my-nest-app.tar thomas@146.59.242.125:/projects/my-nest-app/my-nest-app.tar
 
     - name: Deploy Docker image on VPS
       run: |
-        ssh -i ~/.ssh/id_rsa thomas@146.59.242.125 "docker load -i /projects/my-nest-app && docker run -d -p 3000:3000 --name my-nest-app my-nest-app"
+        ssh -i ~/.ssh/id_rsa thomas@146.59.242.125 << 'EOF'
