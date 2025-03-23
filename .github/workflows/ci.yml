@@ -43,7 +43,7 @@ jobs:
       run: |
         echo "📦 Clonage du dépôt sur le serveur..."
         ssh -v -i ~/.ssh/id_rsa thomas@146.59.242.125 << 'EOF'
-          cd project-node
+          cd project-node/test-nest
           git pull origin main
           echo "🛠 Arrêt et suppression des anciens containers..."
           docker-compose down || true
