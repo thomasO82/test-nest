@@ -67,7 +67,7 @@ jobs:
     - name: Copy Docker image to VPS
       run: |
         echo "📦 Envoi du fichier my-nest-app.tar au serveur..."
-        scp -v -i ~/.ssh/id_rsa my-nest-app.tar thomas@146.59.242.125:/project-node/my-nest-app.tar
+        scp -v -i ~/.ssh/id_rsa my-nest-app.tar thomas@146.59.242.125:project-node/my-nest-app.tar
 
     # Étape 7 : Déploiement de l'image Docker sur le serveur
     - name: Deploy Docker image on VPS
@@ -78,7 +78,7 @@ jobs:
           docker stop my-nest-app || true
           docker rm my-nest-app || true
           echo "📦 Chargement de l'image Docker..."
-          docker load -i /projects/my-nest-app/my-nest-app.tar
+          docker load -i project-node/my-nest-app.tar
           echo "🚀 Lancement du container..."
           docker run -d --name my-nest-app -p 3000:3000 my-nest-app
           echo "✅ Déploiement terminé !"
