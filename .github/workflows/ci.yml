@@ -1,5 +1,3 @@
-# Exemple complet d'attente du service 'api' avant de continuer
-
 name: CI/CD Pipeline
 
 on:
@@ -40,31 +38,33 @@ jobs:
         echo "🔍 Test de connexion SSH avec détails (mode verbeux)..."
         ssh -v -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no thomas@146.59.242.125 "echo '✅ Connexion SSH réussie !'"
 
-    # Étape 3 : Cloner le dépôt et déployer sur le VPS
-    - name: Clone Git repository and deploy on VPS
+    # Étape 3 : Cloner Git repository sur le VPS
+    - name: Clone Git repository on VPS
       run: |
         echo "📦 Clonage du dépôt sur le serveur..."
         ssh -v -i ~/.ssh/id_rsa thomas@146.59.242.125 << 'EOF'
           cd project-node/test-nest
           git pull origin main
           echo "🛠 Arrêt et suppression des anciens containers..."
-          docker-compose down || true
+          docker-compose down -v || true
           echo "🚀 Lancement du container avec Docker Compose..."
           docker-compose up -d
-
-          # Vérifier l'état des conteneurs
-          docker-compose ps
-
-          # Attente asynchrone pour vérifier si le service 'api' est prêt
-          while ! docker-compose ps | grep -q 'api.*Up'; do
-            echo "⏳ En attente du démarrage du service 'api'..."
-            sleep 5  # Attendre 5 secondes entre chaque vérification
-          done
-          echo "✔ Le service 'api' est maintenant prêt."
-
-          # Exécuter Prisma generate et migrate
-          docker-compose exec api npx prisma generate
-          docker-compose exec api npx prisma migrate deploy
-
-          echo "✅ Déploiement terminé !"
         EOF
+
+    # Étape 4 : Vérification si la base de données est prête
+    - name: Check if DB is ready
+      run: |
+        until docker-compose exec api sh -c "pg_isready -U postgres"; do
+          echo "Waiting for database to be ready..."
+          sleep 5
+        done
+
+    # Étape 5 : Exécution des migrations Prisma
+    - name: Run Prisma Migrate
+      run: docker-compose exec api npx prisma migrate deploy
+
+    # Étape 6 : Génération de Prisma Client
+    - name: Generate Prisma Client
+      run: docker-compose exec api npx prisma generate
+
+    echo "✅ Déploiement terminé !"
