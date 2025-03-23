@@ -53,7 +53,7 @@ jobs:
           # Étape 4 : Vérification si la base de données est prête
           attempts=0
           max_attempts=20  # Limite le nombre de tentatives
-          until docker-compose exec -T api sh -c "pg_isready -U postgres"; do
+          until docker-compose exec -T db sh -c "pg_isready -U postgres"; do
             attempts=$((attempts+1))
             if [ $attempts -ge $max_attempts ]; then
               echo "La base de données n'est pas prête après $attempts tentatives, sortie..."
