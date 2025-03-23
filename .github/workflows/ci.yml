@@ -43,4 +43,4 @@ jobs:
 
     - name: Deploy Docker image on VPS
       run: |
-        ssh -i ~/.ssh/id_rsa user@your-vps-ip "docker load -i /path/to/destination/my-nest-app.tar && docker run -d -p 3000:3000 --name my-nest-app my-nest-app"
+        ssh -i ~/.ssh/id_rsa thomas@146.59.242.125 "docker load -i /path/to/destination/my-nest-app.tar && docker run -d -p 3000:3000 --name my-nest-app my-nest-app"
