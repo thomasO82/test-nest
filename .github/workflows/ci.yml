@@ -45,41 +45,38 @@ jobs:
         ls -lah ~/.ssh
         cat ~/.ssh/id_rsa | head -n 3
 
-    # Étape 3 : Vérification du contenu du fichier known_hosts
-    - name: Vérifier le fichier known_hosts
-      run: |
-        echo "🔍 Contenu du fichier known_hosts..."
-        cat ~/.ssh/known_hosts
-
-    # Étape 4 : Test de connexion SSH détaillée (mode verbeux)
+    # Étape 3 : Test de connexion SSH
     - name: Test SSH Connection
       run: |
         echo "🔍 Test de connexion SSH avec détails (mode verbeux)..."
         ssh -v -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no thomas@146.59.242.125 "echo '✅ Connexion SSH réussie !'"
 
-    # Étape 5 : Vérifier le fichier authorized_keys sur le VPS (dans ton workflow GitHub)
-    - name: Vérifier authorized_keys sur le serveur
+    # Étape 4 : Cloner le dépôt sur le VPS
+    - name: Clone Git repository on VPS
       run: |
-        echo "🔍 Vérification du fichier authorized_keys sur le serveur..."
-        ssh -v -i ~/.ssh/id_rsa thomas@146.59.242.125 "cat ~/.ssh/authorized_keys"
+        echo "📦 Clonage du dépôt sur le serveur..."
+        ssh -v -i ~/.ssh/id_rsa thomas@146.59.242.125 << 'EOF'
+          cd /path/to/your/working/directory
+          git clone https://github.com/your-user/your-repo.git || (cd your-repo && git pull)
+        EOF
 
-    # Étape 6 : Copie du Docker image vers le VPS
+    # Étape 5 : Copier l'image Docker sur le VPS
     - name: Copy Docker image to VPS
       run: |
         echo "📦 Envoi du fichier my-nest-app.tar au serveur..."
-        scp -v -i ~/.ssh/id_rsa my-nest-app.tar thomas@146.59.242.125:project-node/my-nest-app.tar
+        scp -v -i ~/.ssh/id_rsa my-nest-app.tar thomas@146.59.242.125:/path/to/your/working/directory/your-repo/my-nest-app.tar
 
-    # Étape 7 : Déploiement de l'image Docker sur le serveur
-    - name: Deploy Docker image on VPS
+    # Étape 6 : Déploiement via Docker Compose
+    - name: Deploy Docker image with Docker Compose
       run: |
-        echo "🚀 Déploiement de l'application sur le serveur..."
+        echo "🚀 Déploiement de l'application sur le serveur avec Docker Compose..."
         ssh -v -i ~/.ssh/id_rsa thomas@146.59.242.125 << 'EOF'
+          cd /path/to/your/working/directory/your-repo
           echo "🛠 Arrêt et suppression des anciens containers..."
-          docker stop my-nest-app || true
-          docker rm my-nest-app || true
+          docker-compose down || true
           echo "📦 Chargement de l'image Docker..."
-          docker load -i project-node/my-nest-app.tar
-          echo "🚀 Lancement du container..."
-          docker run -d --name my-nest-app -p 3000:3000 my-nest-app
+          docker load -i my-nest-app.tar
+          echo "🚀 Lancement du container avec Docker Compose..."
+          docker-compose up -d
           echo "✅ Déploiement terminé !"
         EOF
