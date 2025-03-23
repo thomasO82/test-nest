@@ -30,6 +30,7 @@ jobs:
     - name: Save Docker image to tar
       run: docker save my-nest-app -o my-nest-app.tar
 
+    # Vérification et configuration de la clé SSH
     - name: Set up SSH key
       run: |
         mkdir -p ~/.ssh
@@ -37,10 +38,36 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -t rsa 146.59.242.125 >> ~/.ssh/known_hosts
 
+    # 🛠 Vérification de la clé privée et permissions
+    - name: Debug SSH Key
+      run: |
+        echo "🔍 Vérification de la clé privée..."
+        ls -lah ~/.ssh
+        cat ~/.ssh/id_rsa | head -n 3
+
+    # ✅ Test de connexion SSH AVANT d'envoyer l'image
+    - name: Test SSH Connection
+      run: |
+        echo "🔍 Test de connexion SSH..."
+        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no thomas@146.59.242.125 "echo '✅ Connexion SSH réussie !'"
+
+    # 📦 Copie du Docker image vers le VPS
     - name: Copy Docker image to VPS
       run: |
-        scp -i ~/.ssh/id_rsa my-nest-app.tar thomas@146.59.242.125:/projects/my-nest-app/my-nest-app.tar
+        echo "📦 Envoi du fichier my-nest-app.tar au serveur..."
+        scp -v -i ~/.ssh/id_rsa my-nest-app.tar thomas@146.59.242.125:/projects/my-nest-app/my-nest-app.tar
 
+    # 🚀 Déploiement de l'image Docker sur le serveur
     - name: Deploy Docker image on VPS
       run: |
-        ssh -i ~/.ssh/id_rsa thomas@146.59.242.125 << 'EOF'
+        echo "🚀 Déploiement de l'application sur le serveur..."
+        ssh -v -i ~/.ssh/id_rsa thomas@146.59.242.125 << 'EOF'
+          echo "🛠 Arrêt et suppression des anciens containers..."
+          docker stop my-nest-app || true
+          docker rm my-nest-app || true
+          echo "📦 Chargement de l'image Docker..."
+          docker load -i /projects/my-nest-app/my-nest-app.tar
+          echo "🚀 Lancement du container..."
+          docker run -d --name my-nest-app -p 3000:3000 my-nest-app
+          echo "✅ Déploiement terminé !"
+        EOF
