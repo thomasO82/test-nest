@@ -69,6 +69,6 @@ jobs:
         echo "📦 Clonage du dépôt sur le serveur..."
         ssh -v -i ~/.ssh/id_rsa thomas@146.59.242.125 << 'EOF'
           cd project-node/test-nest
-          docker-compose -T exec api npx prisma generate
-          docker-compose -T exec api npx prisma migrate dev --name init
+          docker-compose exec api npx prisma generate
+          docker-compose exec api npx prisma migrate dev --name init
         EOF
