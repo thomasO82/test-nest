@@ -49,7 +49,8 @@ jobs:
           docker-compose down || true
           echo "🚀 Lancement du container avec Docker Compose..."
           docker-compose up -d
-          .\script-syst\run-migrate-dev.sh
+          npx prisma generate
+          npx prisma migratre deploy
           echo "✅ Déploiement terminé !"
         EOF
 
