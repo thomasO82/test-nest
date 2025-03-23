@@ -39,7 +39,7 @@ jobs:
 
     - name: Copy Docker image to VPS
       run: |
-        scp -i ~/.ssh/id_rsa my-nest-app.tar user@your-vps-ip:/path/to/destination
+        scp -i ~/.ssh/id_rsa my-nest-app.tar thomas@146.59.242.125:/pojects/my-nest-app
 
     - name: Deploy Docker image on VPS
       run: |
