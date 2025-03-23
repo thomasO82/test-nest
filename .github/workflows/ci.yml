@@ -49,12 +49,23 @@ jobs:
           docker-compose down -v || true
           echo "🚀 Lancement du container avec Docker Compose..."
           docker-compose up -d
-          until docker-compose exec api sh -c "pg_isready -U postgres"; do
-            echo "Waiting for database to be ready..."
+          
+          # Étape 4 : Vérification si la base de données est prête
+          attempts=0
+          max_attempts=20  # Limite le nombre de tentatives
+          until docker-compose exec -T api sh -c "pg_isready -U postgres"; do
+            attempts=$((attempts+1))
+            if [ $attempts -ge $max_attempts ]; then
+              echo "La base de données n'est pas prête après $attempts tentatives, sortie..."
+              exit 1
+            fi
+            echo "En attente que la base de données soit prête... Tentative $attempts/$max_attempts"
             sleep 5
           done
-          docker-compose exec api npx prisma generate
-          docker-compose exec api npx prisma migrate deploy
-        EOF
 
-   
+          # Étape 5 : Exécution des migrations Prisma
+          docker-compose exec -T api npx prisma migrate deploy
+
+          # Étape 6 : Génération de Prisma Client
+          docker-compose exec -T api npx prisma generate
+        EOF
