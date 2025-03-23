@@ -36,24 +36,24 @@ jobs:
     - name: Test SSH Connection
       run: |
         echo "🔍 Test de connexion SSH avec détails (mode verbeux)..."
-        ssh -T -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no thomas@146.59.242.125 "echo '✅ Connexion SSH réussie !'"
+        ssh -v -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no thomas@146.59.242.125 "echo '✅ Connexion SSH réussie !'"
 
     # Étape 3 : Cloner Git repository sur le VPS
     - name: Clone Git repository on VPS
       run: |
         echo "📦 Clonage du dépôt sur le serveur..."
-        ssh -T -i ~/.ssh/id_rsa thomas@146.59.242.125 << 'EOF'
+        ssh -v -i ~/.ssh/id_rsa thomas@146.59.242.125 << 'EOF'
           cd project-node/test-nest
           git pull origin main
           echo "🛠 Arrêt et suppression des anciens containers..."
           docker-compose down -v || true
           echo "🚀 Lancement du container avec Docker Compose..."
           docker-compose up -d
-
+          
           # Étape 4 : Vérification si la base de données est prête
           attempts=0
           max_attempts=20  # Limite le nombre de tentatives
-          until docker-compose exec db sh -c "pg_isready -U postgres"; do
+          until docker-compose exec -T db sh -c "pg_isready -U postgres"; do
             attempts=$((attempts+1))
             if [ $attempts -ge $max_attempts ]; then
               echo "La base de données n'est pas prête après $attempts tentatives, sortie..."
@@ -62,10 +62,13 @@ jobs:
             echo "En attente que la base de données soit prête... Tentative $attempts/$max_attempts"
             sleep 5
           done
+        EOF
 
-          # Étape 5 : Exécution des migrations Prisma
-          docker-compose exec api npx prisma migrate deploy || { echo "Migration échouée"; exit 1; }
-
-          # Étape 6 : Génération de Prisma Client
-          docker-compose exec api npx prisma generate || { echo "Génération du client Prisma échouée"; exit 1; }
+    - name: apply migrations
+      run: |
+        echo "📦 Clonage du dépôt sur le serveur..."
+        ssh -v -i ~/.ssh/id_rsa thomas@146.59.242.125 << 'EOF'
+          cd project-node/test-nest
+          docker-compose -T exec api npx prisma generate
+          docker-compos -T exec api npx prisma migrate dev --name init
         EOF
