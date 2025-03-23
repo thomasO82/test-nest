@@ -30,7 +30,7 @@ jobs:
     - name: Save Docker image to tar
       run: docker save my-nest-app -o my-nest-app.tar
 
-    # Vérification et configuration de la clé SSH
+    # Étape 1 : Setup et vérification de la clé privée
     - name: Set up SSH key
       run: |
         mkdir -p ~/.ssh
@@ -38,26 +38,38 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -t rsa 146.59.242.125 >> ~/.ssh/known_hosts
 
-    # 🛠 Vérification de la clé privée et permissions
+    # Étape 2 : Vérification de la clé privée et permissions
     - name: Debug SSH Key
       run: |
         echo "🔍 Vérification de la clé privée..."
         ls -lah ~/.ssh
         cat ~/.ssh/id_rsa | head -n 3
 
-    # ✅ Test de connexion SSH AVANT d'envoyer l'image
+    # Étape 3 : Vérification du contenu du fichier known_hosts
+    - name: Vérifier le fichier known_hosts
+      run: |
+        echo "🔍 Contenu du fichier known_hosts..."
+        cat ~/.ssh/known_hosts
+
+    # Étape 4 : Test de connexion SSH détaillée (mode verbeux)
     - name: Test SSH Connection
       run: |
-        echo "🔍 Test de connexion SSH..."
-        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no thomas@146.59.242.125 "echo '✅ Connexion SSH réussie !'"
+        echo "🔍 Test de connexion SSH avec détails (mode verbeux)..."
+        ssh -v -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no thomas@146.59.242.125 "echo '✅ Connexion SSH réussie !'"
 
-    # 📦 Copie du Docker image vers le VPS
+    # Étape 5 : Vérifier le fichier authorized_keys sur le VPS (dans ton workflow GitHub)
+    - name: Vérifier authorized_keys sur le serveur
+      run: |
+        echo "🔍 Vérification du fichier authorized_keys sur le serveur..."
+        ssh -v -i ~/.ssh/id_rsa thomas@146.59.242.125 "cat ~/.ssh/authorized_keys"
+
+    # Étape 6 : Copie du Docker image vers le VPS
     - name: Copy Docker image to VPS
       run: |
         echo "📦 Envoi du fichier my-nest-app.tar au serveur..."
         scp -v -i ~/.ssh/id_rsa my-nest-app.tar thomas@146.59.242.125:/projects/my-nest-app/my-nest-app.tar
 
-    # 🚀 Déploiement de l'image Docker sur le serveur
+    # Étape 7 : Déploiement de l'image Docker sur le serveur
     - name: Deploy Docker image on VPS
       run: |
         echo "🚀 Déploiement de l'application sur le serveur..."
