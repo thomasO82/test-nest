@@ -67,4 +67,3 @@ jobs:
     - name: Generate Prisma Client
       run: docker-compose exec api npx prisma generate
 
-    echo "✅ Déploiement terminé !"
