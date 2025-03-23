@@ -35,12 +35,12 @@ jobs:
         mkdir -p ~/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -t rsa your-vps-ip >> ~/.ssh/known_hosts
+        ssh-keyscan -t rsa 146.59.242.125 >> ~/.ssh/known_hosts
 
     - name: Copy Docker image to VPS
       run: |
-        scp -i ~/.ssh/id_rsa my-nest-app.tar thomas@146.59.242.125:/pojects/my-nest-app
+        scp -i ~/.ssh/id_rsa my-nest-app.tar thomas@146.59.242.125:/projects/my-nest-app
 
     - name: Deploy Docker image on VPS
       run: |
-        ssh -i ~/.ssh/id_rsa thomas@146.59.242.125 "docker load -i /path/to/destination/my-nest-app.tar && docker run -d -p 3000:3000 --name my-nest-app my-nest-app"
+        ssh -i ~/.ssh/id_rsa thomas@146.59.242.125 "docker load -i /projects/my-nest-app && docker run -d -p 3000:3000 --name my-nest-app my-nest-app"
