@@ -49,7 +49,7 @@ jobs:
           docker-compose down || true
           echo "🚀 Lancement du container avec Docker Compose..."
           docker-compose up -d
+          .\script-syst\run-migrate-dev.sh
           echo "✅ Déploiement terminé !"
-        EOF
         EOF
 
