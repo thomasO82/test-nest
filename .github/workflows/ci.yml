@@ -67,7 +67,7 @@ jobs:
     - name: Copy Docker image to VPS
       run: |
         echo "📦 Envoi du fichier my-nest-app.tar au serveur..."
-        scp -v -i ~/.ssh/id_rsa my-nest-app.tar thomas@146.59.242.125:/projects/my-nest-app/my-nest-app.tar
+        scp -v -i ~/.ssh/id_rsa my-nest-app.tar thomas@146.59.242.125:/project-node/my-nest-app.tar
 
     # Étape 7 : Déploiement de l'image Docker sur le serveur
     - name: Deploy Docker image on VPS
