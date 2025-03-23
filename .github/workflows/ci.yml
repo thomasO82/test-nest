@@ -44,7 +44,7 @@ jobs:
         echo "📦 Clonage du dépôt sur le serveur..."
         ssh -v -i ~/.ssh/id_rsa thomas@146.59.242.125 << 'EOF'
           cd project-node
-          git clone https://github.com/your-user/your-repo.git || (cd your-repo && git pull)
+          git pull origin main
           echo "🛠 Arrêt et suppression des anciens containers..."
           docker-compose down || true
           echo "🚀 Lancement du container avec Docker Compose..."
