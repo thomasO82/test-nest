@@ -4,23 +4,10 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:15
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
 
     steps:
     - name: Checkout code
@@ -38,10 +25,22 @@ jobs:
       run: npm test
 
     - name: Build Docker image
-      run: docker build -t ${{ secrets.DOCKER_USERNAME }}/my-nest-app .
+      run: docker build -t my-nest-app .
 
-    - name: Log in to Docker Hub
-      run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin  
+    - name: Save Docker image to tar
+      run: docker save my-nest-app -o my-nest-app.tar
 
-    - name: Push Docker image to Docker Hub
-      run: docker push ${{ secrets.DOCKER_USERNAME }}/my-nest-app
+    - name: Set up SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -t rsa your-vps-ip >> ~/.ssh/known_hosts
+
+    - name: Copy Docker image to VPS
+      run: |
+        scp -i ~/.ssh/id_rsa my-nest-app.tar user@your-vps-ip:/path/to/destination
+
+    - name: Deploy Docker image on VPS
+      run: |
+        ssh -i ~/.ssh/id_rsa user@your-vps-ip "docker load -i /path/to/destination/my-nest-app.tar && docker run -d -p 3000:3000 --name my-nest-app my-nest-app"
