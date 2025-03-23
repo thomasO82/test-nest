@@ -24,12 +24,6 @@ jobs:
     - name: Run tests
       run: npm test
 
-    - name: Build Docker image
-      run: docker build -t my-nest-app .
-
-    - name: Save Docker image to tar
-      run: docker save my-nest-app -o my-nest-app.tar
-
     # Étape 1 : Setup et vérification de la clé privée
     - name: Set up SSH key
       run: |
@@ -38,45 +32,24 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -t rsa 146.59.242.125 >> ~/.ssh/known_hosts
 
-    # Étape 2 : Vérification de la clé privée et permissions
-    - name: Debug SSH Key
-      run: |
-        echo "🔍 Vérification de la clé privée..."
-        ls -lah ~/.ssh
-        cat ~/.ssh/id_rsa | head -n 3
-
-    # Étape 3 : Test de connexion SSH
+    # Étape 2 : Test de connexion SSH
     - name: Test SSH Connection
       run: |
         echo "🔍 Test de connexion SSH avec détails (mode verbeux)..."
         ssh -v -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no thomas@146.59.242.125 "echo '✅ Connexion SSH réussie !'"
 
-    # Étape 4 : Cloner le dépôt sur le VPS
+    # Étape 3 : Cloner le dépôt sur le VPS
     - name: Clone Git repository on VPS
       run: |
         echo "📦 Clonage du dépôt sur le serveur..."
         ssh -v -i ~/.ssh/id_rsa thomas@146.59.242.125 << 'EOF'
-          cd /path/to/your/working/directory
+          cd project-node
           git clone https://github.com/your-user/your-repo.git || (cd your-repo && git pull)
-        EOF
-
-    # Étape 5 : Copier l'image Docker sur le VPS
-    - name: Copy Docker image to VPS
-      run: |
-        echo "📦 Envoi du fichier my-nest-app.tar au serveur..."
-        scp -v -i ~/.ssh/id_rsa my-nest-app.tar thomas@146.59.242.125:/path/to/your/working/directory/your-repo/my-nest-app.tar
-
-    # Étape 6 : Déploiement via Docker Compose
-    - name: Deploy Docker image with Docker Compose
-      run: |
-        echo "🚀 Déploiement de l'application sur le serveur avec Docker Compose..."
-        ssh -v -i ~/.ssh/id_rsa thomas@146.59.242.125 << 'EOF'
-          cd /path/to/your/working/directory/your-repo
           echo "🛠 Arrêt et suppression des anciens containers..."
           docker-compose down || true
-          echo "📦 Chargement de l'image Docker..."
-          docker load -i my-nest-app.tar
           echo "🚀 Lancement du container avec Docker Compose..."
           docker-compose up -d
           echo "✅ Déploiement terminé !"
         EOF
+        EOF
+
