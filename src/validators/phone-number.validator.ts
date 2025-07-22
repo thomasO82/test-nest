@@ -4,7 +4,7 @@ import { parsePhoneNumberFromString } from 'libphonenumber-js';
 export function IsPhoneNumber(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {
     registerDecorator({
-      name: 'isPhoneNumber', "coucoue",
+      name: 'isPhoneNumber',
       target: object.constructor,
       propertyName: propertyName,
       options: validationOptions,
